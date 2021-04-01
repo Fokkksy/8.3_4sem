@@ -1,9 +1,10 @@
+#include <iostream>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <queue>
 
-template < typename T >
+template <typename T>
 class Safe_Priority_Queue
 {
 public:
@@ -40,12 +41,12 @@ public:
 		pr_queue.pop();
 	}
 
-	std::shared_ptr < T > wait_and_pop()
+	std::shared_ptr <T> wait_and_pop()
 	{
 		std::unique_lock < std::mutex > lock(m_mutex);
 
 		m_condition_variable.wait(lock, [this] {return !pr_queue.empty(); });
-		auto result = std::make_shared < T >(pr_queue.top());
+		auto result = std::make_shared <T>(pr_queue.top());
 		pr_queue.pop();
 
 		return result;
@@ -53,7 +54,7 @@ public:
 
 	bool try_pop(T& value)
 	{
-		std::lock_guard < std::mutex > lock(m_mutex);
+		std::lock_guard <std::mutex> lock(m_mutex);
 
 		if (pr_queue.empty())
 		{
@@ -66,16 +67,16 @@ public:
 		return true;
 	}
 
-	std::shared_ptr < T > try_pop()
+	std::shared_ptr <T> try_pop()
 	{
-		std::lock_guard < std::mutex > lock(m_mutex);
+		std::lock_guard <std::mutex> lock(m_mutex);
 
 		if (pr_queue.empty())
 		{
-			return std::shared_ptr < T >();
+			return std::shared_ptr <T>();
 		}
 
-		auto result = std::make_shared < T >(pr_queue.top());
+		auto result = std::make_shared <T>(pr_queue.top());
 		pr_queue.pop();
 
 		return result;
@@ -83,13 +84,13 @@ public:
 
 	bool empty() const
 	{
-		std::lock_guard < std::mutex > lock(m_mutex);
+		std::lock_guard <std::mutex> lock(m_mutex);
 		return pr_queue.empty();
 	}
 
 private:
 
-	std::priority_queue	< T > pr_queue;
+	std::priority_queue	<T> pr_queue;
 	std::condition_variable m_condition_variable;
 
 private:
@@ -99,6 +100,20 @@ private:
 
 int main()
 {
+
+	Safe_Priority_Queue<int> priority_queue;
+
+	priority_queue.push(56);
+
+	auto ptr = priority_queue.wait_and_pop();
+
+	std::cout << "We could get " <<*ptr << " out of our priority queue. \n";
+
+	int value;
+
+	bool result = priority_queue.try_pop(value);
+
+	std::cout << "Can we pop something else? " << result << "\n";
 
 	system("pause");
 	return 0;
